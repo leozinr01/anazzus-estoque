@@ -1,0 +1,163 @@
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { TrendingUp, Receipt, Users, ShoppingCart, ChevronRight } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { useAppStore } from "@/store/useAppStore";
+import { useDerivedData } from "@/hooks/useDerivedData";
+import { SALES, chartData } from "@/data/sales";
+import { fmtCurrency } from "@/utils/format";
+import { useTheme } from "@/hooks/useTheme";
+
+export function Dashboard() {
+  const navigate = useNavigate();
+  const products = useAppStore((s) => s.products);
+  const d = useDerivedData(products);
+  const { isDark } = useTheme();
+  const [range, setRange] = useState<"7d" | "30d" | "mes">("30d");
+  const data = useMemo(() => chartData(range), [range]);
+  const metaAtual = 48920;
+  const metaAlvo = 70000;
+
+  return (
+    <div>
+      <PageHeader title="Dashboard" description="Visão geral da Anazzus" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <MetricCard label="Faturamento do mês" value={fmtCurrency(d.faturamento)} delta={12.4} icon={TrendingUp} />
+        <MetricCard label="Vendas no mês" value={d.qtdVendas} delta={8.1} icon={Receipt} />
+        <MetricCard label="Clientes atendidos" value={d.clientesAtendidos} delta={-4.2} icon={Users} />
+        <MetricCard label="Ticket médio" value={fmtCurrency(d.ticketMedio)} delta={3.6} icon={ShoppingCart} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div className="lg:col-span-2 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-sm">Faturamento</h3>
+            <div className="flex text-xs rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden">
+              {(
+                [
+                  ["7d", "7 dias"],
+                  ["30d", "30 dias"],
+                  ["mes", "Mês atual"],
+                ] as const
+              ).map(([k, l]) => (
+                <button
+                  key={k}
+                  onClick={() => setRange(k)}
+                  className={`px-3 py-1.5 font-medium ${
+                    range === k
+                      ? "bg-red-600 text-white"
+                      : "text-neutral-500 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-800"
+                  }`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#27272a" : "#f0f0f0"} vertical={false} />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 11, fill: isDark ? "#a3a3a3" : "#737373" }}
+                axisLine={false}
+                tickLine={false}
+                interval={Math.ceil(data.length / 8)}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: isDark ? "#a3a3a3" : "#737373" }}
+                axisLine={false}
+                tickLine={false}
+                width={44}
+                tickFormatter={(v) => `${Math.round(v / 1000)}k`}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: isDark ? "#171717" : "#fff",
+                  border: `1px solid ${isDark ? "#27272a" : "#e5e5e5"}`,
+                  borderRadius: 8,
+                  fontSize: 12,
+                }}
+                formatter={(v: number) => [fmtCurrency(v), "Faturamento"]}
+              />
+              <Line type="monotone" dataKey="valor" stroke="#dc2626" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+          <h3 className="font-semibold text-sm mb-4">Meta do mês</h3>
+          <div className="text-2xl font-semibold tabular-nums mb-1">{fmtCurrency(metaAtual)}</div>
+          <div className="text-sm mb-4 text-neutral-500 dark:text-neutral-400">de {fmtCurrency(metaAlvo)}</div>
+          <ProgressBar value={(metaAtual / metaAlvo) * 100} />
+          <div className="mt-2 text-sm font-medium text-red-600">{((metaAtual / metaAlvo) * 100).toFixed(1)}%</div>
+
+          <h3 className="font-semibold text-sm mt-6 mb-3">Ranking do mês</h3>
+          <div className="space-y-2">
+            {d.ranking.slice(0, 5).map((r: any, i: number) => (
+              <div key={r.vendedor.id} className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-semibold ${
+                      i === 0
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
+                    }`}
+                  >
+                    {i + 1}
+                  </span>
+                  {r.vendedor.nome}
+                </span>
+                <span className="font-medium tabular-nums">{fmtCurrency(r.faturamento)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-neutral-800">
+          <h3 className="font-semibold text-sm">Últimas vendas</h3>
+          <button
+            onClick={() => navigate("/vendas")}
+            className="text-xs font-medium text-red-600 hover:underline flex items-center gap-1"
+          >
+            Ver todas <ChevronRight size={14} />
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-neutral-900 text-left text-neutral-500 dark:text-neutral-400">
+                <th className="px-5 py-3 font-medium">Venda</th>
+                <th className="px-5 py-3 font-medium">Cliente</th>
+                <th className="px-5 py-3 font-medium">Vendedora</th>
+                <th className="px-5 py-3 font-medium">Horário</th>
+                <th className="px-5 py-3 font-medium text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
+              {SALES.slice(0, 6).map((s) => (
+                <tr
+                  key={s.id}
+                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800/60"
+                  onClick={() => navigate(`/vendas/${s.id}`)}
+                >
+                  <td className="px-5 py-3 font-medium">{s.numero}</td>
+                  <td className="px-5 py-3">{s.cliente ? s.cliente.nome : "Não identificado"}</td>
+                  <td className="px-5 py-3">{s.vendedora.nome}</td>
+                  <td className="px-5 py-3">{s.hora}</td>
+                  <td className="px-5 py-3 text-right font-medium tabular-nums">{fmtCurrency(s.total)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
