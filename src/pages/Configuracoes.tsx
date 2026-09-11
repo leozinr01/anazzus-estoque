@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
-import { Info, Plus, Save } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useSettingsStore } from "@/store/useSettingsStore";
-import { useTeamStore } from "@/store/useTeamStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useAppStore } from "@/store/useAppStore";
 import { fmtCurrency } from "@/utils/format";
-import type { DiscountType, UserRole } from "@/types";
-
-const ROLE_LABEL: Record<UserRole, string> = { admin: "Administradora", gerente: "Gerente", vendedora: "Vendedora" };
+import type { DiscountType } from "@/types";
 
 export function Configuracoes() {
   const settings = useSettingsStore((s) => s.settings);
@@ -18,11 +15,6 @@ export function Configuracoes() {
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const addDiscount = useSettingsStore((s) => s.addDiscount);
   const toggleDiscount = useSettingsStore((s) => s.toggleDiscount);
-
-  const team = useTeamStore((s) => s.team);
-  const teamLoaded = useTeamStore((s) => s.loaded);
-  const fetchTeam = useTeamStore((s) => s.fetchAll);
-  const updateMember = useTeamStore((s) => s.updateMember);
 
   const profile = useAuthStore((s) => s.profile);
   const notify = useAppStore((s) => s.notify);
@@ -34,8 +26,7 @@ export function Configuracoes() {
 
   useEffect(() => {
     if (!loaded) fetchAll();
-    if (!teamLoaded) fetchTeam();
-  }, [loaded, fetchAll, teamLoaded, fetchTeam]);
+  }, [loaded, fetchAll]);
 
   useEffect(() => {
     if (settings) {
@@ -93,7 +84,7 @@ export function Configuracoes() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Configurações" description="Dados da loja, descontos, equipe e nota fiscal" />
+      <PageHeader title="Configurações" description="Dados da loja, descontos e nota fiscal" />
 
       <section className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5">
         <h3 className="font-semibold text-sm mb-4">Dados da loja e política de troca</h3>
@@ -157,49 +148,6 @@ export function Configuracoes() {
             </div>
           ))}
           {discounts.length === 0 && <div className="text-sm text-neutral-500 dark:text-neutral-400 py-2">Nenhum cupom criado.</div>}
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5">
-        <h3 className="font-semibold text-sm mb-4">Equipe e permissões</h3>
-        <div className="divide-y divide-gray-100 dark:divide-neutral-800">
-          {team.map((t) => (
-            <div key={t.id} className="flex flex-wrap items-center gap-3 py-3">
-              <div className="flex-1 min-w-[140px]">
-                <div className="font-medium text-sm">{t.nome}</div>
-                <div className="text-xs text-neutral-500 dark:text-neutral-400">{t.cargo}</div>
-              </div>
-              <select
-                value={t.role}
-                onChange={(e) => updateMember(t.id, { role: e.target.value as UserRole })}
-                className="rounded-lg border px-2 py-1.5 text-xs bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700"
-              >
-                {(["vendedora", "gerente", "admin"] as UserRole[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-              </select>
-              <input
-                type="number"
-                defaultValue={t.meta}
-                onBlur={(e) => updateMember(t.id, { meta: Number(e.target.value) || 0 })}
-                className="w-24 rounded-lg border px-2 py-1.5 text-xs text-right tabular-nums bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700"
-                title="Meta mensal"
-              />
-              <button
-                onClick={() => updateMember(t.id, { ativo: !t.ativo })}
-                className={`text-xs font-medium px-2 py-1 rounded-lg ${t.ativo ? "text-green-600" : "text-neutral-400"}`}
-              >
-                {t.ativo ? "Ativa" : "Inativa"}
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="flex items-start gap-2 rounded-lg bg-gray-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 p-3 text-xs mt-4">
-          <Info size={14} className="shrink-0 mt-0.5" />
-          <span>
-            Para criar um novo login (vendedora, gerente ou admin), acesse o painel do Supabase em{" "}
-            <strong>Authentication → Users → Add user</strong>, informe e-mail e senha, e em "User Metadata" adicione{" "}
-            <code>{"{"}"nome":"Nome da pessoa","role":"vendedora"{"}"}</code> (ou "gerente"/"admin"). O perfil aparece
-            automaticamente aqui após o primeiro login.
-          </span>
         </div>
       </section>
 
