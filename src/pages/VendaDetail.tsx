@@ -92,7 +92,7 @@ export function VendaDetail() {
       />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+          <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm">
             <div className="px-4 py-3 border-b border-gray-200 dark:border-neutral-800 font-semibold text-sm">Produtos</div>
             <div className="divide-y divide-gray-100 dark:divide-neutral-800">
               {sale.items.map((it) => (
@@ -108,7 +108,7 @@ export function VendaDetail() {
           </div>
         </div>
         <div className="space-y-4">
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+          <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-4">
             <div className="text-sm space-y-2 mb-4">
               <div className="flex justify-between"><span className="text-neutral-500 dark:text-neutral-400">Cliente</span><span className="font-medium">{sale.cliente ? sale.cliente.nome : "Não identificado"}</span></div>
               <div className="flex justify-between"><span className="text-neutral-500 dark:text-neutral-400">Vendedora</span><span className="font-medium">{sale.vendedora?.nome || "—"}</span></div>

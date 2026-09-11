@@ -36,7 +36,7 @@ export function Equipe() {
           <div
             key={r.vendedor.id}
             onClick={() => navigate(`/equipe/${r.vendedor.id}`)}
-            className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 cursor-pointer transition-shadow hover:shadow-sm"
+            className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5 cursor-pointer transition-shadow hover:shadow-sm"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">

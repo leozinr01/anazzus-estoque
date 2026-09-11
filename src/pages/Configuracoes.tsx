@@ -52,7 +52,7 @@ export function Configuracoes() {
 
   if (profile && profile.role === "vendedora") {
     return (
-      <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+      <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
         Apenas administradoras e gerentes podem acessar as configurações.
       </div>
     );
@@ -95,7 +95,7 @@ export function Configuracoes() {
     <div className="space-y-6">
       <PageHeader title="Configurações" description="Dados da loja, descontos, equipe e nota fiscal" />
 
-      <section className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+      <section className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5">
         <h3 className="font-semibold text-sm mb-4">Dados da loja e política de troca</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
@@ -128,7 +128,7 @@ export function Configuracoes() {
         </button>
       </section>
 
-      <section className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+      <section className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5">
         <h3 className="font-semibold text-sm mb-4">Cupons de desconto</h3>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
           <input value={newDiscount.codigo} onChange={(e) => setNewDiscount({ ...newDiscount, codigo: e.target.value })} placeholder="Código" className="rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" />
@@ -160,7 +160,7 @@ export function Configuracoes() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+      <section className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5">
         <h3 className="font-semibold text-sm mb-4">Equipe e permissões</h3>
         <div className="divide-y divide-gray-100 dark:divide-neutral-800">
           {team.map((t) => (
@@ -203,7 +203,7 @@ export function Configuracoes() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+      <section className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5">
         <h3 className="font-semibold text-sm mb-2">Nota Fiscal Eletrônica (NFC-e)</h3>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
           A emissão automática de nota fiscal exige: CNPJ ativo, certificado digital A1 e contratação de um provedor

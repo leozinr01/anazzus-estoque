@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, Plus, Package, Printer } from "lucide-react";
+import { Search, Plus, Package, Printer, Wand2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -9,6 +9,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { CORES, TAMANHOS } from "@/data/options";
 import { fmtCurrency, statusEstoque } from "@/utils/format";
 import { printProductLabel } from "@/utils/printLabel";
+import { generateBarcode, generateSku } from "@/utils/generateCode";
 
 const emptyForm = {
   nome: "",
@@ -77,13 +78,33 @@ export function Produtos() {
     notify("Produto cadastrado.");
   };
 
+  const handleGenerateSku = () => {
+    setForm((f) => ({ ...f, sku: generateSku(products.map((p) => p.sku)) }));
+  };
+
+  const handleGenerateBarcode = () => {
+    const existing = new Set(products.map((p) => p.codigoBarras).filter(Boolean) as string[]);
+    setForm((f) => ({ ...f, codigoBarras: generateBarcode(existing) }));
+  };
+
   return (
     <div>
       <PageHeader
         title="Produtos"
         description={`${products.length} produtos cadastrados`}
         action={
-          <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 text-sm font-medium">
+          <button
+            onClick={() => {
+              const existingBarcodes = new Set(products.map((p) => p.codigoBarras).filter(Boolean) as string[]);
+              setForm({
+                ...emptyForm,
+                sku: generateSku(products.map((p) => p.sku)),
+                codigoBarras: generateBarcode(existingBarcodes),
+              });
+              setShowModal(true);
+            }}
+            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 text-sm font-medium"
+          >
             <Plus size={15} /> Novo Produto
           </button>
         }
@@ -103,7 +124,7 @@ export function Produtos() {
           {categories.map((c) => <option key={c.id}>{c.nome}</option>)}
         </select>
       </div>
-      <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
+      <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -153,11 +174,36 @@ export function Produtos() {
           </div>
           <div>
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">SKU</label>
-            <input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" />
+            <div className="flex gap-1.5">
+              <input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" />
+              <button
+                type="button"
+                onClick={handleGenerateSku}
+                title="Gerar SKU automaticamente"
+                className="shrink-0 rounded-lg border px-2.5 text-neutral-500 dark:text-neutral-400 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800"
+              >
+                <Wand2 size={15} />
+              </button>
+            </div>
           </div>
           <div>
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">Código de barras</label>
-            <input value={form.codigoBarras} onChange={(e) => setForm({ ...form, codigoBarras: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" placeholder="Escaneie ou digite" />
+            <div className="flex gap-1.5">
+              <input
+                value={form.codigoBarras}
+                onChange={(e) => setForm({ ...form, codigoBarras: e.target.value })}
+                className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700"
+                placeholder="Escaneie ou gere um código"
+              />
+              <button
+                type="button"
+                onClick={handleGenerateBarcode}
+                title="Gerar código de barras automaticamente"
+                className="shrink-0 rounded-lg border px-2.5 text-neutral-500 dark:text-neutral-400 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800"
+              >
+                <Wand2 size={15} />
+              </button>
+            </div>
           </div>
           <div>
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">Preço de venda</label>

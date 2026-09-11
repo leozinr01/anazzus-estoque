@@ -176,7 +176,7 @@ export function POS() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* LEFT */}
         <div className="lg:col-span-2 space-y-4">
-          <form onSubmit={handleBarcodeSubmit} className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+          <form onSubmit={handleBarcodeSubmit} className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-4">
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2 flex items-center gap-1.5">
               <Barcode size={14} /> Escaneie ou digite o código de barras
             </label>
@@ -195,7 +195,7 @@ export function POS() {
             </div>
           </form>
 
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+          <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-4">
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2 flex items-center gap-1.5">
               <Search size={14} /> Buscar por nome, SKU ou código
             </label>
@@ -232,7 +232,7 @@ export function POS() {
             )}
           </div>
 
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+          <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm">
             <div className="px-4 py-3 border-b border-gray-200 dark:border-neutral-800 font-semibold text-sm">
               Itens da venda ({cart.length})
             </div>
@@ -285,7 +285,7 @@ export function POS() {
 
         {/* RIGHT */}
         <div className="space-y-4">
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+          <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-4">
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2 block">Cliente</label>
             <input
               value={customerId === "none" ? customerSearch : selectedCustomer?.nome || ""}
@@ -329,7 +329,7 @@ export function POS() {
             </button>
           </div>
 
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+          <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-4">
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2 block">Vendedora responsável</label>
             <select
               value={seller}
@@ -345,7 +345,7 @@ export function POS() {
             </select>
           </div>
 
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+          <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-4">
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2 block">Forma de pagamento</label>
             <div className="grid grid-cols-2 gap-1.5">
               {PAYMENT_METHODS.map((m) => (
@@ -364,7 +364,7 @@ export function POS() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+          <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-4">
             <div className="flex justify-between text-sm mb-2">
               <span className="text-neutral-500 dark:text-neutral-400">Subtotal</span>
               <span className="font-medium tabular-nums">{fmtCurrency(subtotal)}</span>

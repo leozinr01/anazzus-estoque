@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { Brand } from "@/components/ui/Brand";
 
 export function Login() {
   const signIn = useAuthStore((s) => s.signIn);
@@ -20,16 +21,15 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-neutral-950 px-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#ece5db] dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 px-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-red-600 flex items-center justify-center font-bold text-white text-lg mb-3">A</div>
-          <div className="text-lg font-bold tracking-widest">ANAZZUS</div>
-          <div className="text-xs text-neutral-500 dark:text-neutral-400 tracking-wide">SISTEMA INTERNO</div>
+          <Brand className="text-neutral-900 dark:text-white text-4xl text-center" />
+          <div className="text-xs text-neutral-500 dark:text-neutral-400 tracking-wide uppercase mt-3">Sistema Interno</div>
         </div>
         <form
           onSubmit={handleSubmit}
-          className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 space-y-4"
+          className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-6 space-y-4"
         >
           <div>
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">E-mail</label>

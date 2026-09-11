@@ -107,7 +107,7 @@ export function Trocas() {
       <PageHeader title="Trocas e Devoluções" description={`Prazo configurado: ${diasTroca} dias após a compra`} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+        <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-4">
           <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2 flex items-center gap-1.5">
             <Search size={14} /> Buscar venda por número ou cliente
           </label>
@@ -225,7 +225,7 @@ export function Trocas() {
           )}
         </div>
 
-        <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm">
           <div className="px-4 py-3 border-b border-gray-200 dark:border-neutral-800 font-semibold text-sm">Histórico</div>
           {exchanges.length === 0 ? (
             <EmptyState icon={Repeat} title="Nenhuma troca registrada" />
