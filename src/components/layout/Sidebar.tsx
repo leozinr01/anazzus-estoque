@@ -66,7 +66,7 @@ export function Sidebar({ mobileOpen, setMobileOpen }: Props) {
           </>
         )}
       </div>
-      <nav className={`flex-1 space-y-1 overflow-y-auto ${isCollapsed ? "px-2" : "px-3"}`}>
+      <nav className={`flex-1 space-y-1 overflow-y-auto scrollbar-hide ${isCollapsed ? "px-2" : "px-3"}`}>
         {NAV.map((item) => {
           const Icon = item.icon;
           return (
