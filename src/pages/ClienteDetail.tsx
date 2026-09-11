@@ -1,25 +1,40 @@
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Users, Receipt, TrendingUp, ShoppingCart, Phone, Mail } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { useAppStore } from "@/store/useAppStore";
+import { useCatalogStore } from "@/store/useCatalogStore";
+import { useCustomersStore } from "@/store/useCustomersStore";
+import { useSalesStore } from "@/store/useSalesStore";
+import { useTeamStore } from "@/store/useTeamStore";
 import { useDerivedData } from "@/hooks/useDerivedData";
-import { CUSTOMERS } from "@/data/customers";
-import { SALES } from "@/data/sales";
 import { fmtCurrency } from "@/utils/format";
 
 export function ClienteDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const products = useAppStore((s) => s.products);
-  const d = useDerivedData(products);
-  const cliente = CUSTOMERS.find((c) => c.id === id);
+  const products = useCatalogStore((s) => s.products);
+  const sales = useSalesStore((s) => s.sales);
+  const salesLoaded = useSalesStore((s) => s.loaded);
+  const fetchSales = useSalesStore((s) => s.fetchAll);
+  const team = useTeamStore((s) => s.team);
+  const customers = useCustomersStore((s) => s.customers);
+  const custLoaded = useCustomersStore((s) => s.loaded);
+  const fetchCustomers = useCustomersStore((s) => s.fetchAll);
+
+  useEffect(() => {
+    if (!custLoaded) fetchCustomers();
+    if (!salesLoaded) fetchSales();
+  }, [custLoaded, fetchCustomers, salesLoaded, fetchSales]);
+
+  const d = useDerivedData(products, sales, team, customers);
+  const cliente = customers.find((c) => c.id === id);
 
   if (!cliente || !id) return <EmptyState icon={Users} title="Cliente não encontrado" />;
 
-  const info = d.porCliente[id];
-  const historico = SALES.filter((s) => s.cliente?.id === id);
+  const info = d.porCliente[id] || { compras: 0, total: 0 };
+  const historico = sales.filter((s) => s.cliente?.id === id);
   const ticketMedio = info.compras ? info.total / info.compras : 0;
 
   return (
@@ -34,8 +49,8 @@ export function ClienteDetail() {
         <MetricCard label="Ticket médio" value={fmtCurrency(ticketMedio)} icon={ShoppingCart} />
         <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
           <div className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-3">Contato</div>
-          <div className="text-sm flex items-center gap-2 mb-1.5"><Phone size={13} className="text-neutral-400" /> {cliente.telefone}</div>
-          <div className="text-sm flex items-center gap-2"><Mail size={13} className="text-neutral-400" /> {cliente.email}</div>
+          <div className="text-sm flex items-center gap-2 mb-1.5"><Phone size={13} className="text-neutral-400" /> {cliente.telefone || "—"}</div>
+          <div className="text-sm flex items-center gap-2"><Mail size={13} className="text-neutral-400" /> {cliente.email || "—"}</div>
         </div>
       </div>
       <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
@@ -54,10 +69,10 @@ export function ClienteDetail() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
               {historico.map((s) => (
-                <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/60">
+                <tr key={s.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800/60" onClick={() => navigate(`/vendas/${s.id}`)}>
                   <td className="px-5 py-3 font-medium">{s.numero}</td>
                   <td className="px-5 py-3">{s.data}</td>
-                  <td className="px-5 py-3">{s.vendedora.nome}</td>
+                  <td className="px-5 py-3">{s.vendedora?.nome || "—"}</td>
                   <td className="px-5 py-3 text-right font-medium tabular-nums">{fmtCurrency(s.total)}</td>
                 </tr>
               ))}

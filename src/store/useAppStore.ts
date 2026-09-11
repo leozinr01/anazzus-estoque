@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import type { CartItem, Product } from "@/types";
-import { PRODUCTS } from "@/data/products";
 
 interface Toast {
   id: number;
@@ -8,19 +7,12 @@ interface Toast {
 }
 
 interface AppState {
-  // PDV cart (sessão atual)
   cart: CartItem[];
   addToCart: (product: Product) => void;
   updateCartQty: (productId: string, delta: number) => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
 
-  // produtos (permite ajuste de estoque em memória durante a sessão)
-  products: Product[];
-  adjustStock: (productId: string, novoEstoque: number) => void;
-  addProduct: (product: Product) => void;
-
-  // toasts
   toasts: Toast[];
   notify: (msg: string) => void;
   dismissToast: (id: number) => void;
@@ -47,13 +39,6 @@ export const useAppStore = create<AppState>((set) => ({
   removeFromCart: (productId) =>
     set((state) => ({ cart: state.cart.filter((it) => it.product.id !== productId) })),
   clearCart: () => set({ cart: [] }),
-
-  products: PRODUCTS,
-  adjustStock: (productId, novoEstoque) =>
-    set((state) => ({
-      products: state.products.map((p) => (p.id === productId ? { ...p, estoque: novoEstoque } : p)),
-    })),
-  addProduct: (product) => set((state) => ({ products: [product, ...state.products] })),
 
   toasts: [],
   notify: (msg) =>

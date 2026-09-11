@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, TrendingUp, Receipt, Users, ShoppingCart, UserSquare2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -5,24 +6,40 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { useAppStore } from "@/store/useAppStore";
+import { useCatalogStore } from "@/store/useCatalogStore";
+import { useCustomersStore } from "@/store/useCustomersStore";
+import { useSalesStore } from "@/store/useSalesStore";
+import { useTeamStore } from "@/store/useTeamStore";
 import { useDerivedData } from "@/hooks/useDerivedData";
 import { useTheme } from "@/hooks/useTheme";
-import { SALES, chartData } from "@/data/sales";
+import { buildChartData } from "@/utils/chartData";
 import { fmtCurrency } from "@/utils/format";
 
 export function MembroDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const products = useAppStore((s) => s.products);
-  const d = useDerivedData(products);
+  const products = useCatalogStore((s) => s.products);
+  const sales = useSalesStore((s) => s.sales);
+  const salesLoaded = useSalesStore((s) => s.loaded);
+  const fetchSales = useSalesStore((s) => s.fetchAll);
+  const team = useTeamStore((s) => s.team);
+  const teamLoaded = useTeamStore((s) => s.loaded);
+  const fetchTeam = useTeamStore((s) => s.fetchAll);
+  const customers = useCustomersStore((s) => s.customers);
   const { isDark } = useTheme();
+
+  useEffect(() => {
+    if (!teamLoaded) fetchTeam();
+    if (!salesLoaded) fetchSales();
+  }, [teamLoaded, fetchTeam, salesLoaded, fetchSales]);
+
+  const d = useDerivedData(products, sales, team, customers);
   const membro = d.ranking.find((r: any) => r.vendedor.id === id);
-  const historico = SALES.filter((s) => s.vendedora.id === id).slice(0, 8);
+  const historico = sales.filter((s) => s.vendedora?.id === id).slice(0, 8);
+  const memberSales = useMemo(() => sales.filter((s) => s.vendedora?.id === id), [sales, id]);
+  const data = buildChartData(memberSales, "30d");
 
   if (!membro) return <EmptyState icon={UserSquare2} title="Membro não encontrado" />;
-
-  const data = chartData("30d").map((p) => ({ ...p, valor: Math.round(p.valor * 0.25) }));
 
   return (
     <div>
@@ -38,7 +55,7 @@ export function MembroDetail() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
-          <h3 className="font-semibold text-sm mb-4">Desempenho no mês</h3>
+          <h3 className="font-semibold text-sm mb-4">Desempenho nos últimos 30 dias</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#27272a" : "#f0f0f0"} vertical={false} />
@@ -60,18 +77,22 @@ export function MembroDetail() {
       </div>
       <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 mt-4">
         <div className="px-5 py-4 border-b border-gray-200 dark:border-neutral-800 font-semibold text-sm">Vendas recentes</div>
-        <table className="w-full text-sm">
-          <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
-            {historico.map((s) => (
-              <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/60">
-                <td className="px-5 py-3 font-medium">{s.numero}</td>
-                <td className="px-5 py-3">{s.data}</td>
-                <td className="px-5 py-3">{s.cliente ? s.cliente.nome : "Não identificado"}</td>
-                <td className="px-5 py-3 text-right font-medium tabular-nums">{fmtCurrency(s.total)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {historico.length === 0 ? (
+          <EmptyState icon={Receipt} title="Nenhuma venda registrada" />
+        ) : (
+          <table className="w-full text-sm">
+            <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
+              {historico.map((s) => (
+                <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/60 cursor-pointer" onClick={() => navigate(`/vendas/${s.id}`)}>
+                  <td className="px-5 py-3 font-medium">{s.numero}</td>
+                  <td className="px-5 py-3">{s.data}</td>
+                  <td className="px-5 py-3">{s.cliente ? s.cliente.nome : "Não identificado"}</td>
+                  <td className="px-5 py-3 text-right font-medium tabular-nums">{fmtCurrency(s.total)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

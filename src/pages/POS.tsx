@@ -1,15 +1,22 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Barcode, Search, Plus, Minus, Trash2, ShoppingCart, CheckCircle2, Printer } from "lucide-react";
+import { Barcode, Search, Plus, Minus, Trash2, ShoppingCart, CheckCircle2, Printer, Tag } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal } from "@/components/ui/Modal";
 import { useAppStore } from "@/store/useAppStore";
-import { PRODUCTS } from "@/data/products";
-import { CUSTOMERS } from "@/data/customers";
-import { TEAM } from "@/data/team";
+import { useCatalogStore } from "@/store/useCatalogStore";
+import { useCustomersStore } from "@/store/useCustomersStore";
+import { useTeamStore } from "@/store/useTeamStore";
+import { useSalesStore } from "@/store/useSalesStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { fmtCurrency } from "@/utils/format";
-import type { Customer } from "@/types";
+import { printReceipt } from "@/utils/printReceipt";
+import { printProductLabel } from "@/utils/printLabel";
+import { PAYMENT_LABELS, type Customer, type PaymentMethod, type Sale } from "@/types";
+
+const PAYMENT_METHODS: PaymentMethod[] = ["dinheiro", "pix", "debito", "credito", "outro"];
 
 export function POS() {
   const navigate = useNavigate();
@@ -20,24 +27,65 @@ export function POS() {
   const clearCart = useAppStore((s) => s.clearCart);
   const notify = useAppStore((s) => s.notify);
 
+  const products = useCatalogStore((s) => s.products);
+  const productsLoaded = useCatalogStore((s) => s.loaded);
+  const fetchProducts = useCatalogStore((s) => s.fetchAll);
+  const findByBarcode = useCatalogStore((s) => s.findByBarcode);
+
+  const customers = useCustomersStore((s) => s.customers);
+  const custLoaded = useCustomersStore((s) => s.loaded);
+  const fetchCustomers = useCustomersStore((s) => s.fetchAll);
+  const addCustomer = useCustomersStore((s) => s.addCustomer);
+
+  const team = useTeamStore((s) => s.team);
+  const teamLoaded = useTeamStore((s) => s.loaded);
+  const fetchTeam = useTeamStore((s) => s.fetchAll);
+
+  const settings = useSettingsStore((s) => s.settings);
+  const settingsLoaded = useSettingsStore((s) => s.loaded);
+  const fetchSettings = useSettingsStore((s) => s.fetchAll);
+  const findDiscountByCode = useSettingsStore((s) => s.findDiscountByCode);
+
+  const createSale = useSalesStore((s) => s.createSale);
+  const profile = useAuthStore((s) => s.profile);
+
+  useEffect(() => {
+    if (!productsLoaded) fetchProducts();
+    if (!custLoaded) fetchCustomers();
+    if (!teamLoaded) fetchTeam();
+    if (!settingsLoaded) fetchSettings();
+  }, [productsLoaded, fetchProducts, custLoaded, fetchCustomers, teamLoaded, fetchTeam, settingsLoaded, fetchSettings]);
+
   const [barcode, setBarcode] = useState("");
-  const [seller, setSeller] = useState(TEAM[0].id);
+  const [seller, setSeller] = useState("");
   const [customerId, setCustomerId] = useState<string>("none");
   const [customerSearch, setCustomerSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
-  const [discount, setDiscount] = useState(0);
+  const [discountCode, setDiscountCode] = useState("");
+  const [manualDiscount, setManualDiscount] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("dinheiro");
   const [showNewCustomer, setShowNewCustomer] = useState(false);
-  const [successModal, setSuccessModal] = useState<any>(null);
+  const [newCustomerForm, setNewCustomerForm] = useState({ nome: "", telefone: "", email: "" });
+  const [successModal, setSuccessModal] = useState<Sale | null>(null);
+  const [saving, setSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (profile && !seller) setSeller(profile.id);
+  }, [profile, seller]);
 
   const handleBarcodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const code = barcode.trim();
     if (!code) return;
-    const found = PRODUCTS.find((p) => p.codigoBarras === code);
+    const found = findByBarcode(code);
     if (found) {
-      addToCart(found);
-      notify(`${found.nome} adicionado à venda.`);
+      if (found.estoque <= 0) {
+        notify(`${found.nome} sem estoque disponível.`);
+      } else {
+        addToCart(found);
+        notify(`${found.nome} adicionado à venda.`);
+      }
     } else {
       notify("Produto não encontrado.");
     }
@@ -48,22 +96,29 @@ export function POS() {
   const productResults = useMemo(() => {
     if (!productSearch.trim()) return [];
     const q = productSearch.toLowerCase();
-    return PRODUCTS.filter(
-      (p) => p.nome.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.codigoBarras.includes(q)
-    ).slice(0, 6);
-  }, [productSearch]);
+    return products
+      .filter((p) => p.nome.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.codigoBarras || "").includes(q))
+      .slice(0, 6);
+  }, [productSearch, products]);
 
   const customerResults = useMemo(() => {
-    if (!customerSearch.trim()) return CUSTOMERS.slice(0, 5);
+    if (!customerSearch.trim()) return customers.slice(0, 5);
     const q = customerSearch.toLowerCase();
-    return CUSTOMERS.filter((c) => c.nome.toLowerCase().includes(q)).slice(0, 5);
-  }, [customerSearch]);
+    return customers.filter((c) => c.nome.toLowerCase().includes(q)).slice(0, 5);
+  }, [customerSearch, customers]);
 
   const subtotal = cart.reduce((s, it) => s + it.product.preco * it.quantidade, 0);
+  const appliedDiscount = discountCode.trim() ? findDiscountByCode(discountCode) : undefined;
+  const discountFromCode = appliedDiscount
+    ? appliedDiscount.tipo === "percentual"
+      ? (subtotal * appliedDiscount.valor) / 100
+      : appliedDiscount.valor
+    : 0;
+  const discount = appliedDiscount ? discountFromCode : manualDiscount;
   const total = Math.max(0, subtotal - discount);
-  const selectedCustomer: Customer | null = customerId === "none" ? null : CUSTOMERS.find((c) => c.id === customerId) || null;
+  const selectedCustomer: Customer | null = customerId === "none" ? null : customers.find((c) => c.id === customerId) || null;
 
-  const finalize = () => {
+  const finalize = async () => {
     if (cart.length === 0) {
       notify("Adicione ao menos um produto.");
       return;
@@ -72,21 +127,47 @@ export function POS() {
       notify("Selecione a vendedora responsável.");
       return;
     }
-    const num = `#${String(100 + Math.floor(subtotal)).padStart(5, "0")}`;
-    setSuccessModal({
-      numero: num,
-      cliente: selectedCustomer ? selectedCustomer.nome : "Não identificado",
-      vendedora: TEAM.find((t) => t.id === seller)?.nome,
-      total,
+    setSaving(true);
+    const { sale, error } = await createSale({
+      clienteId: selectedCustomer?.id || null,
+      vendedoraId: seller,
+      desconto: Math.round(discount * 100) / 100,
+      discountId: appliedDiscount?.id || null,
+      formaPagamento: paymentMethod,
+      items: cart,
     });
+    setSaving(false);
+    if (error || !sale) {
+      notify(error || "Não foi possível registrar a venda.");
+      return;
+    }
+    setSuccessModal(sale);
   };
 
   const resetSale = () => {
     clearCart();
-    setDiscount(0);
+    setManualDiscount(0);
+    setDiscountCode("");
     setCustomerId("none");
     setCustomerSearch("");
     setSuccessModal(null);
+    fetchProducts();
+  };
+
+  const handleCreateCustomer = async () => {
+    if (!newCustomerForm.nome.trim()) {
+      notify("Informe o nome do cliente.");
+      return;
+    }
+    const { customer, error } = await addCustomer(newCustomerForm);
+    if (error || !customer) {
+      notify(error || "Erro ao cadastrar cliente.");
+      return;
+    }
+    setCustomerId(customer.id);
+    setShowNewCustomer(false);
+    setNewCustomerForm({ nome: "", telefone: "", email: "" });
+    notify("Cliente cadastrado e selecionado.");
   };
 
   return (
@@ -130,6 +211,10 @@ export function POS() {
                   <button
                     key={p.id}
                     onClick={() => {
+                      if (p.estoque <= 0) {
+                        notify(`${p.nome} sem estoque disponível.`);
+                        return;
+                      }
                       addToCart(p);
                       notify(`${p.nome} adicionado à venda.`);
                       setProductSearch("");
@@ -138,7 +223,7 @@ export function POS() {
                   >
                     <span>
                       <span className="font-medium">{p.nome}</span>
-                      <span className="ml-2 text-xs text-neutral-500 dark:text-neutral-400">{p.sku}</span>
+                      <span className="ml-2 text-xs text-neutral-500 dark:text-neutral-400">{p.sku} · {p.estoque} em estoque</span>
                     </span>
                     <span className="font-medium tabular-nums">{fmtCurrency(p.preco)}</span>
                   </button>
@@ -173,7 +258,13 @@ export function POS() {
                       </button>
                       <span className="w-6 text-center text-sm font-medium tabular-nums">{it.quantidade}</span>
                       <button
-                        onClick={() => updateCartQty(it.product.id, 1)}
+                        onClick={() => {
+                          if (it.quantidade >= it.product.estoque) {
+                            notify("Estoque insuficiente.");
+                            return;
+                          }
+                          updateCartQty(it.product.id, 1);
+                        }}
                         className="w-7 h-7 rounded-lg border flex items-center justify-center border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800"
                       >
                         <Plus size={13} />
@@ -245,7 +336,8 @@ export function POS() {
               onChange={(e) => setSeller(e.target.value)}
               className="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700"
             >
-              {TEAM.map((s) => (
+              <option value="" disabled>Selecione...</option>
+              {team.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.nome}
                 </option>
@@ -254,40 +346,95 @@ export function POS() {
           </div>
 
           <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2 block">Forma de pagamento</label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {PAYMENT_METHODS.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setPaymentMethod(m)}
+                  className={`px-2.5 py-2 rounded-lg text-xs font-medium border ${
+                    paymentMethod === m
+                      ? "bg-red-600 text-white border-red-600"
+                      : "border-gray-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400"
+                  }`}
+                >
+                  {PAYMENT_LABELS[m]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
             <div className="flex justify-between text-sm mb-2">
               <span className="text-neutral-500 dark:text-neutral-400">Subtotal</span>
               <span className="font-medium tabular-nums">{fmtCurrency(subtotal)}</span>
             </div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 flex items-center gap-1"><Tag size={12} /> Cupom de desconto</label>
+            <input
+              value={discountCode}
+              onChange={(e) => setDiscountCode(e.target.value)}
+              placeholder="Código (opcional)"
+              className="w-full rounded-lg border px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700"
+            />
+            {discountCode.trim() && !appliedDiscount && <div className="text-xs text-red-600 mb-2">Cupom inválido ou expirado.</div>}
             <div className="flex justify-between items-center text-sm mb-3">
-              <span className="text-neutral-500 dark:text-neutral-400">Desconto</span>
+              <span className="text-neutral-500 dark:text-neutral-400">Desconto manual</span>
               <input
                 type="number"
                 min="0"
-                value={discount}
-                onChange={(e) => setDiscount(Math.max(0, Number(e.target.value) || 0))}
-                className="w-24 rounded-lg border px-2 py-1 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700"
+                disabled={!!appliedDiscount}
+                value={appliedDiscount ? Math.round(discountFromCode * 100) / 100 : manualDiscount}
+                onChange={(e) => setManualDiscount(Math.max(0, Number(e.target.value) || 0))}
+                className="w-24 rounded-lg border px-2 py-1 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700 disabled:opacity-60"
               />
             </div>
             <div className="flex justify-between items-baseline pt-3 border-t border-gray-200 dark:border-neutral-800">
               <span className="font-semibold">TOTAL</span>
               <span className="text-2xl font-bold text-red-600 tabular-nums">{fmtCurrency(total)}</span>
             </div>
-            <button onClick={finalize} className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white rounded-lg py-3 text-sm font-semibold transition-colors">
-              Finalizar Venda
+            <button
+              onClick={finalize}
+              disabled={saving}
+              className="w-full mt-4 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg py-3 text-sm font-semibold transition-colors"
+            >
+              {saving ? "Registrando..." : "Finalizar Venda"}
             </button>
           </div>
         </div>
       </div>
 
       <Modal open={showNewCustomer} onClose={() => setShowNewCustomer(false)} title="Novo cliente">
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Cadastro de clientes será implementado em uma próxima etapa.
-        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">Nome</label>
+            <input
+              value={newCustomerForm.nome}
+              onChange={(e) => setNewCustomerForm({ ...newCustomerForm, nome: e.target.value })}
+              className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">Telefone</label>
+            <input
+              value={newCustomerForm.telefone}
+              onChange={(e) => setNewCustomerForm({ ...newCustomerForm, telefone: e.target.value })}
+              className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">E-mail</label>
+            <input
+              value={newCustomerForm.email}
+              onChange={(e) => setNewCustomerForm({ ...newCustomerForm, email: e.target.value })}
+              className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700"
+            />
+          </div>
+        </div>
         <button
-          onClick={() => setShowNewCustomer(false)}
-          className="mt-4 w-full rounded-lg border py-2.5 text-sm font-medium border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800"
+          onClick={handleCreateCustomer}
+          className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white rounded-lg py-2.5 text-sm font-medium"
         >
-          Entendi
+          Salvar e selecionar
         </button>
       </Modal>
 
@@ -300,25 +447,25 @@ export function POS() {
               </div>
               <div>
                 <div className="font-semibold">{successModal.numero}</div>
-                <div className="text-xs text-neutral-500 dark:text-neutral-400">Venda registrada localmente</div>
+                <div className="text-xs text-neutral-500 dark:text-neutral-400">Venda registrada no sistema</div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm mb-4">
               <div>
                 <div className="text-neutral-500 dark:text-neutral-400">Cliente</div>
-                <div className="font-medium">{successModal.cliente}</div>
+                <div className="font-medium">{successModal.cliente?.nome || "Não identificado"}</div>
               </div>
               <div>
                 <div className="text-neutral-500 dark:text-neutral-400">Vendedora</div>
-                <div className="font-medium">{successModal.vendedora}</div>
+                <div className="font-medium">{successModal.vendedora?.nome}</div>
               </div>
               <div className="col-span-2">
                 <div className="text-neutral-500 dark:text-neutral-400">Total</div>
                 <div className="font-semibold text-red-600 text-lg tabular-nums">{fmtCurrency(successModal.total)}</div>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button onClick={resetSale} className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-lg py-2.5 text-sm font-medium">
+            <div className="flex flex-wrap gap-2">
+              <button onClick={resetSale} className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-lg py-2.5 text-sm font-medium min-w-[100px]">
                 Nova venda
               </button>
               <button
@@ -326,16 +473,24 @@ export function POS() {
                   navigate("/vendas");
                   resetSale();
                 }}
-                className="flex-1 rounded-lg border py-2.5 text-sm font-medium border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800"
+                className="flex-1 rounded-lg border py-2.5 text-sm font-medium border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 min-w-[100px]"
               >
                 Ver vendas
               </button>
               <button
-                onClick={() => window.print()}
-                className="flex-1 rounded-lg border py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800"
+                onClick={() => printReceipt(successModal, settings)}
+                className="flex-1 rounded-lg border py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 min-w-[100px]"
               >
-                <Printer size={14} /> Imprimir
+                <Printer size={14} /> Comprovante
               </button>
+              {successModal.items.some((it) => it.produto?.codigoBarras) && (
+                <button
+                  onClick={() => successModal.items.forEach((it) => it.produto && printProductLabel(it.produto))}
+                  className="flex-1 rounded-lg border py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 min-w-[100px]"
+                >
+                  <Tag size={14} /> Etiquetas
+                </button>
+              )}
             </div>
           </div>
         )}

@@ -1,15 +1,32 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Star } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { useAppStore } from "@/store/useAppStore";
+import { useCatalogStore } from "@/store/useCatalogStore";
+import { useCustomersStore } from "@/store/useCustomersStore";
+import { useSalesStore } from "@/store/useSalesStore";
+import { useTeamStore } from "@/store/useTeamStore";
 import { useDerivedData } from "@/hooks/useDerivedData";
 import { fmtCurrency } from "@/utils/format";
 
 export function Equipe() {
   const navigate = useNavigate();
-  const products = useAppStore((s) => s.products);
-  const d = useDerivedData(products);
+  const products = useCatalogStore((s) => s.products);
+  const sales = useSalesStore((s) => s.sales);
+  const salesLoaded = useSalesStore((s) => s.loaded);
+  const fetchSales = useSalesStore((s) => s.fetchAll);
+  const team = useTeamStore((s) => s.team);
+  const teamLoaded = useTeamStore((s) => s.loaded);
+  const fetchTeam = useTeamStore((s) => s.fetchAll);
+  const customers = useCustomersStore((s) => s.customers);
+
+  useEffect(() => {
+    if (!teamLoaded) fetchTeam();
+    if (!salesLoaded) fetchSales();
+  }, [teamLoaded, fetchTeam, salesLoaded, fetchSales]);
+
+  const d = useDerivedData(products, sales, team, customers);
 
   return (
     <div>
@@ -31,7 +48,7 @@ export function Equipe() {
                   <div className="text-xs text-neutral-500 dark:text-neutral-400">{r.vendedor.cargo}</div>
                 </div>
               </div>
-              {i === 0 && (
+              {i === 0 && r.faturamento > 0 && (
                 <span className="flex items-center gap-1 text-xs font-semibold text-red-600">
                   <Star size={13} fill="currentColor" /> 1º lugar
                 </span>
@@ -45,6 +62,9 @@ export function Equipe() {
             <div className="mt-1.5 text-xs font-medium text-red-600">{r.progresso.toFixed(0)}% da meta</div>
           </div>
         ))}
+        {d.ranking.length === 0 && (
+          <div className="text-sm text-neutral-500 dark:text-neutral-400 col-span-full">Nenhum membro da equipe cadastrado ainda.</div>
+        )}
       </div>
     </div>
   );

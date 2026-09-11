@@ -1,23 +1,49 @@
-import { useState } from "react";
-import { Boxes, PackageCheck, AlertCircle, PackageX } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Boxes, PackageCheck, AlertCircle, PackageX, Printer } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Modal } from "@/components/ui/Modal";
+import { useCatalogStore } from "@/store/useCatalogStore";
 import { useAppStore } from "@/store/useAppStore";
-import { fmtCurrency, statusEstoque } from "@/utils/format";
+import { statusEstoque } from "@/utils/format";
+import { printProductLabel } from "@/utils/printLabel";
 import type { Product } from "@/types";
 
+const MOTIVOS = ["Entrada de mercadoria", "Perda/avaria", "Devolução de fornecedor", "Correção de contagem"];
+
 export function Estoque() {
-  const products = useAppStore((s) => s.products);
-  const adjustStock = useAppStore((s) => s.adjustStock);
+  const products = useCatalogStore((s) => s.products);
+  const loaded = useCatalogStore((s) => s.loaded);
+  const fetchAll = useCatalogStore((s) => s.fetchAll);
+  const adjustStock = useCatalogStore((s) => s.adjustStock);
   const notify = useAppStore((s) => s.notify);
+
   const [ajuste, setAjuste] = useState<Product | null>(null);
   const [novoValor, setNovoValor] = useState("");
+  const [motivo, setMotivo] = useState(MOTIVOS[0]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!loaded) fetchAll();
+  }, [loaded, fetchAll]);
 
   const totalPecas = products.reduce((s, p) => s + p.estoque, 0);
   const baixo = products.filter((p) => statusEstoque(p) === "Estoque baixo").length;
   const zerado = products.filter((p) => statusEstoque(p) === "Sem estoque").length;
+
+  const confirmar = async () => {
+    if (!ajuste) return;
+    setSaving(true);
+    const err = await adjustStock(ajuste.id, Number(novoValor) || 0, motivo);
+    setSaving(false);
+    if (err) {
+      notify(err);
+      return;
+    }
+    setAjuste(null);
+    notify("Estoque atualizado.");
+  };
 
   return (
     <div>
@@ -50,10 +76,14 @@ export function Estoque() {
                   <td className="px-5 py-3 text-right tabular-nums">{p.estoqueMinimo}</td>
                   <td className="px-5 py-3"><StatusBadge status={statusEstoque(p)} /></td>
                   <td className="px-5 py-3 text-right">
+                    <button onClick={() => printProductLabel(p)} className="text-neutral-400 hover:text-red-600 p-1 mr-1" title="Imprimir etiqueta">
+                      <Printer size={15} />
+                    </button>
                     <button
                       onClick={() => {
                         setAjuste(p);
                         setNovoValor(String(p.estoque));
+                        setMotivo(MOTIVOS[0]);
                       }}
                       className="text-xs font-medium text-red-600 hover:underline"
                     >
@@ -89,22 +119,16 @@ export function Estoque() {
             </div>
             <div>
               <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">Motivo</label>
-              <select className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700">
-                <option>Entrada de mercadoria</option>
-                <option>Perda</option>
-                <option>Devolução</option>
-                <option>Correção</option>
+              <select value={motivo} onChange={(e) => setMotivo(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700">
+                {MOTIVOS.map((m) => <option key={m}>{m}</option>)}
               </select>
             </div>
             <button
-              onClick={() => {
-                adjustStock(ajuste.id, Number(novoValor) || 0);
-                setAjuste(null);
-                notify("Estoque atualizado.");
-              }}
-              className="w-full bg-red-600 hover:bg-red-700 text-white rounded-lg py-2.5 text-sm font-medium"
+              onClick={confirmar}
+              disabled={saving}
+              className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg py-2.5 text-sm font-medium"
             >
-              Confirmar ajuste
+              {saving ? "Salvando..." : "Confirmar ajuste"}
             </button>
           </div>
         )}

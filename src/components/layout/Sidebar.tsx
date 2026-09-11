@@ -1,9 +1,10 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, ShoppingCart, Receipt, Package, Boxes, Users, UserSquare2,
-  Settings, Sun, Moon,
+  Settings, Sun, Moon, Repeat, LogOut,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -11,9 +12,16 @@ const NAV = [
   { to: "/vendas", label: "Vendas", icon: Receipt },
   { to: "/produtos", label: "Produtos", icon: Package },
   { to: "/estoque", label: "Estoque", icon: Boxes },
+  { to: "/trocas", label: "Trocas", icon: Repeat },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/equipe", label: "Equipe", icon: UserSquare2 },
 ];
+
+const ROLE_LABEL: Record<string, string> = {
+  admin: "Administradora",
+  gerente: "Gerente",
+  vendedora: "Vendedora",
+};
 
 interface Props {
   mobileOpen: boolean;
@@ -22,6 +30,9 @@ interface Props {
 
 export function Sidebar({ mobileOpen, setMobileOpen }: Props) {
   const { isDark, toggle } = useTheme();
+  const profile = useAuthStore((s) => s.profile);
+  const signOut = useAuthStore((s) => s.signOut);
+  const canManage = profile?.role === "admin" || profile?.role === "gerente";
 
   const content = (
     <div className="h-full flex flex-col border-r bg-neutral-900 border-neutral-900">
@@ -51,11 +62,22 @@ export function Sidebar({ mobileOpen, setMobileOpen }: Props) {
             </NavLink>
           );
         })}
+        {canManage && (
+          <NavLink
+            to="/configuracoes"
+            onClick={() => setMobileOpen(false)}
+            className={({ isActive }) =>
+              `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive ? "bg-red-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+              }`
+            }
+          >
+            <Settings size={17} />
+            Configurações
+          </NavLink>
+        )}
       </nav>
       <div className="px-3 py-4 border-t border-neutral-800 space-y-1">
-        <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 hover:text-white">
-          <Settings size={17} /> Configurações
-        </button>
         <button
           onClick={toggle}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 hover:text-white"
@@ -63,11 +85,20 @@ export function Sidebar({ mobileOpen, setMobileOpen }: Props) {
           {isDark ? <Sun size={17} /> : <Moon size={17} />}
           {isDark ? "Modo claro" : "Modo escuro"}
         </button>
+        <button
+          onClick={signOut}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 hover:text-white"
+        >
+          <LogOut size={17} />
+          Sair
+        </button>
         <div className="flex items-center gap-3 px-3 py-3 mt-1">
-          <div className="w-8 h-8 rounded-full bg-neutral-700 flex items-center justify-center text-white text-xs font-semibold">C</div>
-          <div className="leading-tight">
-            <div className="text-white text-sm font-medium">Carlos</div>
-            <div className="text-neutral-500 text-xs">Administrador</div>
+          <div className="w-8 h-8 rounded-full bg-neutral-700 flex items-center justify-center text-white text-xs font-semibold shrink-0">
+            {profile?.nome?.[0]?.toUpperCase() || "?"}
+          </div>
+          <div className="leading-tight min-w-0">
+            <div className="text-white text-sm font-medium truncate">{profile?.nome || "..."}</div>
+            <div className="text-neutral-500 text-xs">{profile ? ROLE_LABEL[profile.role] : ""}</div>
           </div>
         </div>
       </div>

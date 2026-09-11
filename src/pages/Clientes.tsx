@@ -1,22 +1,77 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Modal } from "@/components/ui/Modal";
+import { useCatalogStore } from "@/store/useCatalogStore";
+import { useCustomersStore } from "@/store/useCustomersStore";
+import { useSalesStore } from "@/store/useSalesStore";
+import { useTeamStore } from "@/store/useTeamStore";
 import { useAppStore } from "@/store/useAppStore";
 import { useDerivedData } from "@/hooks/useDerivedData";
-import { CUSTOMERS } from "@/data/customers";
 import { fmtCurrency } from "@/utils/format";
+
+const emptyForm = { nome: "", telefone: "", email: "", cpf: "" };
 
 export function Clientes() {
   const navigate = useNavigate();
-  const products = useAppStore((s) => s.products);
-  const d = useDerivedData(products);
+  const products = useCatalogStore((s) => s.products);
+  const sales = useSalesStore((s) => s.sales);
+  const salesLoaded = useSalesStore((s) => s.loaded);
+  const fetchSales = useSalesStore((s) => s.fetchAll);
+  const team = useTeamStore((s) => s.team);
+  const teamLoaded = useTeamStore((s) => s.loaded);
+  const fetchTeam = useTeamStore((s) => s.fetchAll);
+  const customers = useCustomersStore((s) => s.customers);
+  const custLoaded = useCustomersStore((s) => s.loaded);
+  const fetchCustomers = useCustomersStore((s) => s.fetchAll);
+  const addCustomer = useCustomersStore((s) => s.addCustomer);
+  const notify = useAppStore((s) => s.notify);
+
+  const d = useDerivedData(products, sales, team, customers);
   const [busca, setBusca] = useState("");
-  const filtered = CUSTOMERS.filter((c) => c.nome.toLowerCase().includes(busca.toLowerCase()));
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!custLoaded) fetchCustomers();
+    if (!salesLoaded) fetchSales();
+    if (!teamLoaded) fetchTeam();
+  }, [custLoaded, fetchCustomers, salesLoaded, fetchSales, teamLoaded, fetchTeam]);
+
+  const filtered = customers.filter((c) => c.nome.toLowerCase().includes(busca.toLowerCase()));
+
+  const handleSave = async () => {
+    setError(null);
+    if (!form.nome.trim()) {
+      setError("Nome é obrigatório.");
+      return;
+    }
+    setSaving(true);
+    const { error: err } = await addCustomer(form);
+    setSaving(false);
+    if (err) {
+      setError(err);
+      return;
+    }
+    setShowModal(false);
+    setForm(emptyForm);
+    notify("Cliente cadastrado.");
+  };
 
   return (
     <div>
-      <PageHeader title="Clientes" description={`${CUSTOMERS.length} clientes cadastrados`} />
+      <PageHeader
+        title="Clientes"
+        description={`${customers.length} clientes cadastrados`}
+        action={
+          <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 text-sm font-medium">
+            <Plus size={15} /> Novo Cliente
+          </button>
+        }
+      />
       <div className="relative mb-4 max-w-sm">
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
         <input
@@ -57,6 +112,35 @@ export function Clientes() {
           </table>
         </div>
       </div>
+
+      <Modal open={showModal} onClose={() => setShowModal(false)} title="Novo cliente">
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">Nome</label>
+            <input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">Telefone</label>
+            <input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" placeholder="(21) 90000-0000" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">E-mail</label>
+            <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">CPF (opcional)</label>
+            <input value={form.cpf} onChange={(e) => setForm({ ...form, cpf: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" />
+          </div>
+        </div>
+        {error && <div className="text-sm text-red-600 mt-3">{error}</div>}
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full mt-4 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg py-2.5 text-sm font-medium"
+        >
+          {saving ? "Salvando..." : "Salvar cliente"}
+        </button>
+      </Modal>
     </div>
   );
 }

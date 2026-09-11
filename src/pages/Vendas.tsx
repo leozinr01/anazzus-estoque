@@ -1,23 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Receipt } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Receipt } from "lucide-react";
-import { SALES } from "@/data/sales";
-import { TEAM } from "@/data/team";
+import { useSalesStore } from "@/store/useSalesStore";
+import { useTeamStore } from "@/store/useTeamStore";
 import { fmtCurrency } from "@/utils/format";
 
 export function Vendas() {
   const navigate = useNavigate();
+  const sales = useSalesStore((s) => s.sales);
+  const salesLoaded = useSalesStore((s) => s.loaded);
+  const fetchSales = useSalesStore((s) => s.fetchAll);
+  const team = useTeamStore((s) => s.team);
+  const teamLoaded = useTeamStore((s) => s.loaded);
+  const fetchTeam = useTeamStore((s) => s.fetchAll);
+
   const [busca, setBusca] = useState("");
   const [statusF, setStatusF] = useState("Todos");
   const [vendedorF, setVendedorF] = useState("Todos");
 
-  const filtered = SALES.filter((s) => {
+  useEffect(() => {
+    if (!salesLoaded) fetchSales();
+    if (!teamLoaded) fetchTeam();
+  }, [salesLoaded, fetchSales, teamLoaded, fetchTeam]);
+
+  const filtered = sales.filter((s) => {
     if (statusF !== "Todos" && s.status !== statusF) return false;
-    if (vendedorF !== "Todos" && s.vendedora.id !== vendedorF) return false;
+    if (vendedorF !== "Todos" && s.vendedora?.id !== vendedorF) return false;
     if (busca && !(s.numero.includes(busca) || (s.cliente && s.cliente.nome.toLowerCase().includes(busca.toLowerCase())))) return false;
     return true;
   });
@@ -37,7 +48,7 @@ export function Vendas() {
         </div>
         <select value={vendedorF} onChange={(e) => setVendedorF(e.target.value)} className="rounded-lg border px-3 py-2.5 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700">
           <option value="Todos">Todas as vendedoras</option>
-          {TEAM.map((s) => (
+          {team.map((s) => (
             <option key={s.id} value={s.id}>{s.nome}</option>
           ))}
         </select>
@@ -68,7 +79,7 @@ export function Vendas() {
                   <td className="px-5 py-3 font-medium">{s.numero}</td>
                   <td className="px-5 py-3">{s.data} · {s.hora}</td>
                   <td className="px-5 py-3">{s.cliente ? s.cliente.nome : "Não identificado"}</td>
-                  <td className="px-5 py-3">{s.vendedora.nome}</td>
+                  <td className="px-5 py-3">{s.vendedora?.nome || "—"}</td>
                   <td className="px-5 py-3">{s.pecas}</td>
                   <td className="px-5 py-3 text-right font-medium tabular-nums">{fmtCurrency(s.total)}</td>
                   <td className="px-5 py-3"><StatusBadge status={s.status} /></td>
