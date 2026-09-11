@@ -59,7 +59,7 @@ export function Vendas() {
         </select>
       </div>
 
-      <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

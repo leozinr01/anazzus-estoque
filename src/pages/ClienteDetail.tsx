@@ -47,13 +47,13 @@ export function ClienteDetail() {
         <MetricCard label="Compras realizadas" value={info.compras} icon={Receipt} />
         <MetricCard label="Total gasto" value={fmtCurrency(info.total)} icon={TrendingUp} />
         <MetricCard label="Ticket médio" value={fmtCurrency(ticketMedio)} icon={ShoppingCart} />
-        <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5">
+        <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5">
           <div className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-3">Contato</div>
           <div className="text-sm flex items-center gap-2 mb-1.5"><Phone size={13} className="text-neutral-400" /> {cliente.telefone || "—"}</div>
           <div className="text-sm flex items-center gap-2"><Mail size={13} className="text-neutral-400" /> {cliente.email || "—"}</div>
         </div>
       </div>
-      <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm">
+      <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
         <div className="px-5 py-4 border-b border-gray-200 dark:border-neutral-800 font-semibold text-sm">Histórico de vendas</div>
         {historico.length === 0 ? (
           <EmptyState icon={Receipt} title="Nenhuma compra registrada" />

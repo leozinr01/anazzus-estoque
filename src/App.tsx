@@ -31,7 +31,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-[#ece5db] dark:bg-neutral-950">
+      <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-neutral-950">
         <div className="text-sm text-neutral-500 dark:text-neutral-400">Carregando...</div>
       </div>
     );
@@ -42,7 +42,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen w-full flex bg-[#ece5db] dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+    <div className="min-h-screen w-full flex bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className="flex-1 min-w-0">
         <Topbar onOpenMenu={() => setMobileOpen(true)} />

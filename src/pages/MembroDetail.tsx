@@ -54,7 +54,7 @@ export function MembroDetail() {
         <MetricCard label="Ticket médio" value={fmtCurrency(membro.ticketMedio)} icon={ShoppingCart} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5">
+        <div className="lg:col-span-2 rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5">
           <h3 className="font-semibold text-sm mb-4">Desempenho nos últimos 30 dias</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={data}>
@@ -69,13 +69,13 @@ export function MembroDetail() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5">
+        <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5">
           <h3 className="font-semibold text-sm mb-3">Meta mensal</h3>
           <ProgressBar value={membro.progresso} />
           <div className="mt-2 text-sm font-medium text-red-600">{membro.progresso.toFixed(1)}% de {fmtCurrency(membro.vendedor.meta)}</div>
         </div>
       </div>
-      <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm mt-4">
+      <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm mt-4">
         <div className="px-5 py-4 border-b border-gray-200 dark:border-neutral-800 font-semibold text-sm">Vendas recentes</div>
         {historico.length === 0 ? (
           <EmptyState icon={Receipt} title="Nenhuma venda registrada" />

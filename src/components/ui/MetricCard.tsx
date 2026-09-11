@@ -11,7 +11,7 @@ interface Props {
 export function MetricCard({ label, value, delta, icon: Icon }: Props) {
   const positive = delta !== undefined ? delta >= 0 : null;
   return (
-    <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5 transition-shadow hover:shadow-md">
+    <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5 transition-shadow hover:shadow-md">
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">{label}</span>
         {Icon && (

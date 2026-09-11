@@ -55,7 +55,7 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div className="lg:col-span-2 rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5">
+        <div className="lg:col-span-2 rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-sm">Faturamento</h3>
             <div className="flex text-xs rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden">
@@ -111,7 +111,7 @@ export function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-5">
+        <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5">
           <h3 className="font-semibold text-sm mb-4">Meta do mês (equipe)</h3>
           <div className="text-2xl font-semibold tabular-nums mb-1">{fmtCurrency(d.faturamento)}</div>
           <div className="text-sm mb-4 text-neutral-500 dark:text-neutral-400">de {fmtCurrency(metaTotal)}</div>
@@ -142,7 +142,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm">
+      <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-neutral-800">
           <h3 className="font-semibold text-sm">Últimas vendas</h3>
           <button

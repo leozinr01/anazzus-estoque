@@ -21,7 +21,7 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#ece5db] dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 px-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 px-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <Brand className="text-neutral-900 dark:text-white text-4xl text-center" />
@@ -29,7 +29,7 @@ export function Login() {
         </div>
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-[#faf7f2] dark:bg-neutral-900 shadow-sm p-6 space-y-4"
+          className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-6 space-y-4"
         >
           <div>
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">E-mail</label>
