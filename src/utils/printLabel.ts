@@ -70,19 +70,19 @@ export function printProductLabel(product: Product, copies = 1) {
         <meta charset="utf-8" />
         <title>Etiqueta - ${escapeHtml(product.sku)}</title>
         <style>
-          @page { size: 40mm 40mm; margin: 2mm; }
+          @page { size: 40mm 25mm; margin: 1mm; }
           * { box-sizing: border-box; }
           body { font-family: Arial, sans-serif; margin: 0; }
           .label {
-            width: 36mm;
-            padding: 2mm;
+            width: 38mm;
+            padding: 1mm;
             text-align: center;
             page-break-after: always;
           }
-          .nome { font-size: 10px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-          .variacao { font-size: 10px; font-weight: bold; color: #000; margin-bottom: 1mm; }
-          img { width: 30mm; height: auto; display: block; margin: 0 auto; }
-          .preco { font-size: 12px; font-weight: bold; margin-top: 1mm; }
+          .nome { font-size: 8px; line-height: 1.1; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .variacao { font-size: 7px; line-height: 1.1; font-weight: bold; color: #000; margin-bottom: 0.5mm; }
+          img { width: 34mm; height: auto; display: block; margin: 0 auto; }
+          .preco { font-size: 9px; line-height: 1.1; font-weight: bold; margin-top: 0.5mm; }
         </style>
       </head>
       <body>
