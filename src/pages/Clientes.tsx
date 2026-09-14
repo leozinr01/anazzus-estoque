@@ -9,7 +9,7 @@ import { useSalesStore } from "@/store/useSalesStore";
 import { useTeamStore } from "@/store/useTeamStore";
 import { useAppStore } from "@/store/useAppStore";
 import { useDerivedData } from "@/hooks/useDerivedData";
-import { fmtCurrency } from "@/utils/format";
+import { fmtCurrency, fmtPhone } from "@/utils/format";
 
 const emptyForm = { nome: "", telefone: "", email: "", cpf: "" };
 
@@ -100,7 +100,7 @@ export function Clientes() {
                 return (
                   <tr key={c.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800/60" onClick={() => navigate(`/clientes/${c.id}`)}>
                     <td className="px-5 py-3 font-medium">{c.nome}</td>
-                    <td className="px-5 py-3 text-neutral-500 dark:text-neutral-400">{c.telefone}</td>
+                    <td className="px-5 py-3 text-neutral-500 dark:text-neutral-400">{fmtPhone(c.telefone)}</td>
                     <td className="px-5 py-3">{info?.ultima || "—"}</td>
                     <td className="px-5 py-3 text-right tabular-nums">{info?.compras || 0}</td>
                     <td className="px-5 py-3 text-right font-medium tabular-nums">{fmtCurrency(info?.total || 0)}</td>
@@ -124,7 +124,7 @@ export function Clientes() {
             <input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" placeholder="(21) 90000-0000" />
           </div>
           <div>
-            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">E-mail</label>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">E-mail (opcional)</label>
             <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" />
           </div>
           <div>

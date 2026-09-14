@@ -422,7 +422,7 @@ export function POS() {
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">E-mail</label>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">E-mail (opcional)</label>
             <input
               value={newCustomerForm.email}
               onChange={(e) => setNewCustomerForm({ ...newCustomerForm, email: e.target.value })}

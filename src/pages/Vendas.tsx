@@ -1,21 +1,27 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Receipt } from "lucide-react";
+import { Search, Receipt, Star } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { useCatalogStore } from "@/store/useCatalogStore";
+import { useCustomersStore } from "@/store/useCustomersStore";
 import { useSalesStore } from "@/store/useSalesStore";
 import { useTeamStore } from "@/store/useTeamStore";
+import { useDerivedData } from "@/hooks/useDerivedData";
 import { fmtCurrency } from "@/utils/format";
 
 export function Vendas() {
   const navigate = useNavigate();
+  const products = useCatalogStore((s) => s.products);
   const sales = useSalesStore((s) => s.sales);
   const salesLoaded = useSalesStore((s) => s.loaded);
   const fetchSales = useSalesStore((s) => s.fetchAll);
   const team = useTeamStore((s) => s.team);
   const teamLoaded = useTeamStore((s) => s.loaded);
   const fetchTeam = useTeamStore((s) => s.fetchAll);
+  const customers = useCustomersStore((s) => s.customers);
 
   const [busca, setBusca] = useState("");
   const [statusF, setStatusF] = useState("Todos");
@@ -26,6 +32,8 @@ export function Vendas() {
     if (!teamLoaded) fetchTeam();
   }, [salesLoaded, fetchSales, teamLoaded, fetchTeam]);
 
+  const d = useDerivedData(products, sales, team, customers);
+
   const filtered = sales.filter((s) => {
     if (statusF !== "Todos" && s.status !== statusF) return false;
     if (vendedorF !== "Todos" && s.vendedora?.id !== vendedorF) return false;
@@ -35,7 +43,7 @@ export function Vendas() {
 
   return (
     <div>
-      <PageHeader title="Vendas" description={`${filtered.length} vendas encontradas`} />
+      <PageHeader title="Histórico de Vendas" description={`${filtered.length} vendas encontradas`} />
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="relative flex-1 min-w-[220px]">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -89,6 +97,49 @@ export function Vendas() {
           </table>
         </div>
         {filtered.length === 0 && <EmptyState icon={Receipt} title="Nenhuma venda encontrada" />}
+      </div>
+
+      <h3 className="font-semibold text-sm mt-8 mb-3">Desempenho da equipe</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {d.ranking.map((r: any, i: number) => (
+          <div
+            key={r.vendedor.id}
+            onClick={() => navigate(`/equipe/${r.vendedor.id}`)}
+            className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5 cursor-pointer transition-shadow hover:shadow-sm"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-neutral-800 text-white flex items-center justify-center font-semibold">
+                  {r.vendedor.nome[0]}
+                </div>
+                <div>
+                  <div className="font-semibold">{r.vendedor.nome}</div>
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">{r.vendedor.cargo}</div>
+                </div>
+              </div>
+              {i === 0 && r.faturamento > 0 && (
+                <span className="flex items-center gap-1 text-xs font-semibold text-red-600">
+                  <Star size={13} fill="currentColor" /> 1º lugar
+                </span>
+              )}
+            </div>
+            <div className="text-xl font-semibold tabular-nums mb-1">{fmtCurrency(r.faturamento)}</div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
+              {r.vendas} vendas · {r.clientesAtendidos} clientes · ticket {fmtCurrency(r.ticketMedio)}
+            </div>
+            {r.vendedor.meta > 0 ? (
+              <>
+                <ProgressBar value={r.progresso} />
+                <div className="mt-1.5 text-xs font-medium text-red-600">{r.progresso.toFixed(0)}% da meta</div>
+              </>
+            ) : (
+              <div className="mt-1.5 text-xs font-medium text-neutral-400 dark:text-neutral-500">Meta não definida</div>
+            )}
+          </div>
+        ))}
+        {d.ranking.length === 0 && (
+          <div className="text-sm text-neutral-500 dark:text-neutral-400 col-span-full">Nenhum membro da equipe cadastrado ainda.</div>
+        )}
       </div>
     </div>
   );

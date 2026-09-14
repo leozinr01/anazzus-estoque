@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard, ShoppingCart, Receipt, Package, Boxes, Users, UserSquare2,
+  LayoutDashboard, ShoppingCart, Receipt, Package, Boxes, Users,
   Settings, Sun, Moon, Repeat, LogOut, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
@@ -11,12 +11,11 @@ import { Brand } from "@/components/ui/Brand";
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/pos", label: "Nova Venda", icon: ShoppingCart },
-  { to: "/vendas", label: "Vendas", icon: Receipt },
-  { to: "/produtos", label: "Produtos", icon: Package },
+  { to: "/vendas", label: "Histórico de Vendas", icon: Receipt },
+  { to: "/produtos", label: "Novo Produto", icon: Package },
   { to: "/estoque", label: "Estoque", icon: Boxes },
   { to: "/trocas", label: "Trocas", icon: Repeat },
   { to: "/clientes", label: "Clientes", icon: Users },
-  { to: "/equipe", label: "Equipe", icon: UserSquare2 },
 ];
 
 const ROLE_LABEL: Record<string, string> = {

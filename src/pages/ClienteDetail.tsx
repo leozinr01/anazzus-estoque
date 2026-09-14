@@ -9,7 +9,7 @@ import { useCustomersStore } from "@/store/useCustomersStore";
 import { useSalesStore } from "@/store/useSalesStore";
 import { useTeamStore } from "@/store/useTeamStore";
 import { useDerivedData } from "@/hooks/useDerivedData";
-import { fmtCurrency } from "@/utils/format";
+import { fmtCurrency, fmtPhone } from "@/utils/format";
 
 export function ClienteDetail() {
   const { id } = useParams();
@@ -49,7 +49,7 @@ export function ClienteDetail() {
         <MetricCard label="Ticket médio" value={fmtCurrency(ticketMedio)} icon={ShoppingCart} />
         <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5">
           <div className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-3">Contato</div>
-          <div className="text-sm flex items-center gap-2 mb-1.5"><Phone size={13} className="text-neutral-400" /> {cliente.telefone || "—"}</div>
+          <div className="text-sm flex items-center gap-2 mb-1.5"><Phone size={13} className="text-neutral-400" /> {fmtPhone(cliente.telefone)}</div>
           <div className="text-sm flex items-center gap-2"><Mail size={13} className="text-neutral-400" /> {cliente.email || "—"}</div>
         </div>
       </div>

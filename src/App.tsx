@@ -12,7 +12,6 @@ import { Produtos } from "@/pages/Produtos";
 import { Estoque } from "@/pages/Estoque";
 import { Clientes } from "@/pages/Clientes";
 import { ClienteDetail } from "@/pages/ClienteDetail";
-import { Equipe } from "@/pages/Equipe";
 import { MembroDetail } from "@/pages/MembroDetail";
 import { Trocas } from "@/pages/Trocas";
 import { Configuracoes } from "@/pages/Configuracoes";
@@ -57,7 +56,6 @@ export default function App() {
             <Route path="/estoque" element={<Estoque />} />
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/clientes/:id" element={<ClienteDetail />} />
-            <Route path="/equipe" element={<Equipe />} />
             <Route path="/equipe/:id" element={<MembroDetail />} />
             <Route path="/trocas" element={<Trocas />} />
             <Route path="/configuracoes" element={<Configuracoes />} />

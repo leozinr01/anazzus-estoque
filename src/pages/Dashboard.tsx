@@ -114,9 +114,20 @@ export function Dashboard() {
         <div className="rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-5">
           <h3 className="font-semibold text-sm mb-4">Meta do mês (equipe)</h3>
           <div className="text-2xl font-semibold tabular-nums mb-1">{fmtCurrency(d.faturamento)}</div>
-          <div className="text-sm mb-4 text-neutral-500 dark:text-neutral-400">de {fmtCurrency(metaTotal)}</div>
-          <ProgressBar value={metaTotal ? (d.faturamento / metaTotal) * 100 : 0} />
-          <div className="mt-2 text-sm font-medium text-red-600">{metaTotal ? ((d.faturamento / metaTotal) * 100).toFixed(1) : "0"}%</div>
+          {metaTotal ? (
+            <>
+              <div className="text-sm mb-4 text-neutral-500 dark:text-neutral-400">de {fmtCurrency(metaTotal)}</div>
+              <ProgressBar value={(d.faturamento / metaTotal) * 100} />
+              <div className="mt-2 text-sm font-medium text-red-600">{((d.faturamento / metaTotal) * 100).toFixed(1)}%</div>
+            </>
+          ) : (
+            <div className="text-sm mb-1 text-neutral-500 dark:text-neutral-400">
+              Nenhuma meta definida.{" "}
+              <button onClick={() => navigate("/vendas")} className="text-red-600 hover:underline font-medium">
+                Definir no Histórico de Vendas
+              </button>
+            </div>
+          )}
 
           <h3 className="font-semibold text-sm mt-6 mb-3">Ranking do mês</h3>
           <div className="space-y-2">

@@ -30,14 +30,34 @@ export function printReceipt(sale: Sale, settings: StoreSettings | null) {
         <title>Comprovante ${escapeHtml(sale.numero)}</title>
         <style>
           @page { size: 80mm auto; margin: 3mm; }
-          * { box-sizing: border-box; }
-          body { font-family: 'Courier New', monospace; font-size: 12px; margin: 0; width: 74mm; }
+          * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #000;
+            margin: 0;
+            width: 72mm;
+          }
           .center { text-align: center; }
           .bold { font-weight: bold; }
           .divider { border-top: 1px dashed #000; margin: 6px 0; }
           .item { margin-bottom: 4px; }
-          .item-linha { display: flex; justify-content: space-between; }
-          .totais div { display: flex; justify-content: space-between; }
+          .item-nome { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .item-linha, .totais > div {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            column-gap: 6px;
+          }
+          .item-linha span:first-child, .totais > div span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .item-linha span:last-child, .totais > div span:last-child {
+            text-align: right;
+            white-space: nowrap;
+          }
           .totais .total { font-weight: bold; font-size: 14px; margin-top: 4px; }
         </style>
       </head>

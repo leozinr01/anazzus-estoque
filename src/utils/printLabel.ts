@@ -15,9 +15,10 @@ export function printProductLabel(product: Product, copies = 1) {
   const canvas = document.createElement("canvas");
   JsBarcode(canvas, product.codigoBarras, {
     format: "CODE128",
-    width: 2,
-    height: 38,
-    fontSize: 12,
+    width: 1.6,
+    height: 44,
+    fontSize: 16,
+    fontOptions: "bold",
     margin: 2,
     displayValue: true,
   });
@@ -55,7 +56,7 @@ export function printProductLabel(product: Product, copies = 1) {
           }
           .nome { font-size: 10px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
           .variacao { font-size: 9px; color: #333; margin-bottom: 1mm; }
-          img { width: 100%; height: auto; }
+          img { width: 42mm; height: auto; display: block; margin: 0 auto; }
           .preco { font-size: 13px; font-weight: bold; margin-top: 1mm; }
         </style>
       </head>
