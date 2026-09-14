@@ -19,7 +19,7 @@ const NAV = [
 ];
 
 const ROLE_LABEL: Record<string, string> = {
-  admin: "Administradora",
+  admin: "Admin",
   gerente: "Gerente",
   vendedora: "Vendedora",
 };
