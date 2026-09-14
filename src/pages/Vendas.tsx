@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Receipt, Star } from "lucide-react";
+import { Search, Receipt, Star, Eye } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -79,6 +79,7 @@ export function Vendas() {
                 <th className="px-5 py-3 font-medium">Peças</th>
                 <th className="px-5 py-3 font-medium text-right">Total</th>
                 <th className="px-5 py-3 font-medium">Status</th>
+                <th className="px-5 py-3 font-medium"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
@@ -91,6 +92,14 @@ export function Vendas() {
                   <td className="px-5 py-3">{s.pecas}</td>
                   <td className="px-5 py-3 text-right font-medium tabular-nums">{fmtCurrency(s.total)}</td>
                   <td className="px-5 py-3"><StatusBadge status={s.status} /></td>
+                  <td className="px-5 py-3">
+                    <button
+                      className="flex items-center gap-1.5 text-xs font-medium text-neutral-800 dark:text-white hover:underline whitespace-nowrap"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/vendas/${s.id}`); }}
+                    >
+                      <Eye size={15} /> Comprovante
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
