@@ -54,8 +54,8 @@ export function printProductLabel(product: Product, copies = 1) {
             text-align: center;
             page-break-after: always;
           }
-          .nome { font-size: 10px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-          .variacao { font-size: 9px; color: #333; margin-bottom: 1mm; }
+          .nome { font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .variacao { font-size: 12px; font-weight: bold; color: #000; margin-bottom: 1mm; }
           img { width: 42mm; height: auto; display: block; margin: 0 auto; }
           .preco { font-size: 13px; font-weight: bold; margin-top: 1mm; }
         </style>

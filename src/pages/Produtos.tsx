@@ -170,7 +170,7 @@ export function Produtos() {
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">Nome</label>
-            <input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" />
+            <input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value.toUpperCase() })} className="w-full rounded-lg border px-3 py-2 text-sm bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700" />
           </div>
           <div>
             <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 block">SKU</label>
