@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
+import { fetchAllRows } from "@/lib/fetchAllRows";
 import type { Customer } from "@/types";
 
 interface CustomerRow {
@@ -44,7 +45,9 @@ export const useCustomersStore = create<CustomersState>((set) => ({
 
   fetchAll: async () => {
     set({ loading: true });
-    const { data, error } = await supabase.from("customers").select("*").order("nome");
+    const { data, error } = await fetchAllRows((from, to) =>
+      supabase.from("customers").select("*").order("nome").order("id").range(from, to)
+    );
     if (error) console.error(error);
     set({ customers: (data || []).map(mapCustomer), loading: false, loaded: true });
   },

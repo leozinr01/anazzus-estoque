@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
+import { fetchAllRows } from "@/lib/fetchAllRows";
 import type { CartItem, PaymentMethod, Sale } from "@/types";
 
 const SALE_SELECT = `
@@ -95,7 +96,9 @@ export const useSalesStore = create<SalesState>((set) => ({
 
   fetchAll: async () => {
     set({ loading: true });
-    const { data, error } = await supabase.from("sales").select(SALE_SELECT).order("created_at", { ascending: false });
+    const { data, error } = await fetchAllRows((from, to) =>
+      supabase.from("sales").select(SALE_SELECT).order("created_at", { ascending: false }).order("id").range(from, to)
+    );
     if (error) console.error(error);
     set({ sales: (data || []).map(mapSale), loading: false, loaded: true });
   },

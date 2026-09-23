@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
+import { fetchAllRows } from "@/lib/fetchAllRows";
 import type { Exchange, ExchangeType } from "@/types";
 
 function mapExchange(row: any): Exchange {
@@ -38,10 +39,14 @@ export const useExchangesStore = create<ExchangesState>((set) => ({
 
   fetchAll: async () => {
     set({ loading: true });
-    const { data, error } = await supabase
-      .from("exchanges")
-      .select("*, sales(numero)")
-      .order("created_at", { ascending: false });
+    const { data, error } = await fetchAllRows((from, to) =>
+      supabase
+        .from("exchanges")
+        .select("*, sales(numero)")
+        .order("created_at", { ascending: false })
+        .order("id")
+        .range(from, to)
+    );
     if (error) console.error(error);
     set({ exchanges: (data || []).map(mapExchange), loading: false, loaded: true });
   },

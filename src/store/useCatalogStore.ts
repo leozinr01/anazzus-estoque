@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
+import { fetchAllRows } from "@/lib/fetchAllRows";
 import type { Category, Product } from "@/types";
 
 interface ProductRow {
@@ -68,10 +69,10 @@ export const useCatalogStore = create<CatalogState>((set, get) => ({
   fetchAll: async () => {
     set({ loading: true });
     const [{ data: products, error: pErr }, { data: categories, error: cErr }, { data: costs, error: kErr }] = await Promise.all([
-      supabase.from("products").select("*, categories(nome)").order("nome"),
+      fetchAllRows((from, to) => supabase.from("products").select("*, categories(nome)").order("nome").order("id").range(from, to)),
       supabase.from("categories").select("*").order("nome"),
       // RLS só devolve linhas para admin/gerente; para vendedoras vem vazio
-      supabase.from("product_costs").select("product_id, preco_custo"),
+      fetchAllRows((from, to) => supabase.from("product_costs").select("product_id, preco_custo").order("product_id").range(from, to)),
     ]);
     if (pErr) console.error(pErr);
     if (cErr) console.error(cErr);
