@@ -13,7 +13,7 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { fmtCurrency } from "@/utils/format";
 import { printReceipt } from "@/utils/printReceipt";
-import { printProductLabel } from "@/utils/printLabel";
+import { printProductLabels } from "@/utils/printLabel";
 import { PAYMENT_LABELS, type Customer, type PaymentMethod, type Sale } from "@/types";
 
 const PAYMENT_METHODS: PaymentMethod[] = ["dinheiro", "pix", "debito", "credito", "outro"];
@@ -485,7 +485,11 @@ export function POS() {
               </button>
               {successModal.items.some((it) => it.produto?.codigoBarras) && (
                 <button
-                  onClick={() => successModal.items.forEach((it) => it.produto && printProductLabel(it.produto))}
+                  onClick={() =>
+                    printProductLabels(
+                      successModal.items.flatMap((it) => (it.produto ? Array.from({ length: it.quantidade }, () => it.produto!) : []))
+                    )
+                  }
                   className="flex-1 rounded-lg border py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 min-w-[100px]"
                 >
                   <Tag size={14} /> Etiquetas
