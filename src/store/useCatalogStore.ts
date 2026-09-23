@@ -11,14 +11,13 @@ interface ProductRow {
   tamanho: string | null;
   cor: string | null;
   preco: number;
-  preco_custo: number;
   estoque: number;
   estoque_minimo: number;
   ativo: boolean;
   categories: { nome: string } | null;
 }
 
-function mapProduct(row: ProductRow): Product {
+function mapProduct(row: ProductRow, precoCusto: number | null = null): Product {
   return {
     id: row.id,
     nome: row.nome,
@@ -29,7 +28,7 @@ function mapProduct(row: ProductRow): Product {
     tamanho: row.tamanho || "Único",
     cor: row.cor || "",
     preco: Number(row.preco),
-    precoCusto: Number(row.preco_custo),
+    precoCusto,
     estoque: row.estoque,
     estoqueMinimo: row.estoque_minimo,
     ativo: row.ativo,
@@ -68,14 +67,18 @@ export const useCatalogStore = create<CatalogState>((set, get) => ({
 
   fetchAll: async () => {
     set({ loading: true });
-    const [{ data: products, error: pErr }, { data: categories, error: cErr }] = await Promise.all([
+    const [{ data: products, error: pErr }, { data: categories, error: cErr }, { data: costs, error: kErr }] = await Promise.all([
       supabase.from("products").select("*, categories(nome)").order("nome"),
       supabase.from("categories").select("*").order("nome"),
+      // RLS só devolve linhas para admin/gerente; para vendedoras vem vazio
+      supabase.from("product_costs").select("product_id, preco_custo"),
     ]);
     if (pErr) console.error(pErr);
     if (cErr) console.error(cErr);
+    if (kErr) console.error(kErr);
+    const costByProduct = new Map((costs || []).map((c) => [c.product_id as string, Number(c.preco_custo)]));
     set({
-      products: (products || []).map((r) => mapProduct(r as unknown as ProductRow)),
+      products: (products || []).map((r) => mapProduct(r as unknown as ProductRow, costByProduct.get(r.id) ?? null)),
       categories: (categories || []).map((c) => ({ id: c.id, nome: c.nome })),
       loading: false,
       loaded: true,
@@ -108,7 +111,6 @@ export const useCatalogStore = create<CatalogState>((set, get) => ({
         tamanho: input.tamanho,
         cor: input.cor,
         preco: input.preco,
-        preco_custo: input.precoCusto,
         estoque: input.estoque,
         estoque_minimo: input.estoqueMinimo,
       })
@@ -116,7 +118,13 @@ export const useCatalogStore = create<CatalogState>((set, get) => ({
       .single();
     if (error) return error.message;
 
-    set((s) => ({ products: [mapProduct(data as unknown as ProductRow), ...s.products] }));
+    // insert sem .select(): vendedoras podem gravar o custo, mas não lê-lo de volta
+    const { error: costErr } = await supabase
+      .from("product_costs")
+      .insert({ product_id: data.id, preco_custo: input.precoCusto });
+    if (costErr) console.error(costErr);
+
+    set((s) => ({ products: [mapProduct(data as unknown as ProductRow, costErr ? null : input.precoCusto), ...s.products] }));
     return null;
   },
 

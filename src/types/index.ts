@@ -19,7 +19,8 @@ export interface Product {
   tamanho: string;
   cor: string;
   preco: number;
-  precoCusto: number;
+  /** null quando o usuário não tem acesso ao custo (só admin/gerente) */
+  precoCusto: number | null;
   estoque: number;
   estoqueMinimo: number;
   ativo: boolean;

@@ -8,7 +8,7 @@ const SALE_SELECT = `
   profiles ( id, nome, cargo, role, meta, ativo ),
   sale_items (
     id, product_id, quantidade, preco_unitario,
-    products ( id, nome, sku, codigo_barras, categoria_id, tamanho, cor, preco, preco_custo, estoque, estoque_minimo, ativo, categories ( nome ) )
+    products ( id, nome, sku, codigo_barras, categoria_id, tamanho, cor, preco, estoque, estoque_minimo, ativo, categories ( nome ) )
   )
 `;
 
@@ -57,7 +57,7 @@ function mapSale(row: any): Sale {
             tamanho: it.products.tamanho || "Único",
             cor: it.products.cor || "",
             preco: Number(it.products.preco),
-            precoCusto: Number(it.products.preco_custo),
+            precoCusto: null,
             estoque: it.products.estoque,
             estoqueMinimo: it.products.estoque_minimo,
             ativo: it.products.ativo,
