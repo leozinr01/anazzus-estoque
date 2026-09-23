@@ -43,10 +43,11 @@ function barcodeDataUrl(code: string) {
   const canvas = document.createElement("canvas");
   const baseOptions = {
     width: 3,
-    height: 50,
-    fontSize: 20,
-    fontOptions: "",
-    margin: 4,
+    height: 40,
+    fontSize: 18,
+    fontOptions: "bold",
+    textMargin: 0,
+    margin: 2,
     displayValue: true,
   };
   try {
@@ -114,7 +115,7 @@ export function printProductLabels(products: Product[]) {
           .label {
             width: ${LABEL_WIDTH_MM}mm;
             height: ${LABEL_HEIGHT_MM}mm;
-            padding: 1.5mm 1mm;
+            padding: 1mm 1mm 2mm;
             overflow: hidden;
             text-align: center;
             display: flex;
@@ -123,8 +124,8 @@ export function printProductLabels(products: Product[]) {
           }
           .nome { font-size: 8px; line-height: 1.1; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
           .variacao { font-size: 7px; line-height: 1.1; font-weight: bold; margin-bottom: 0.5mm; }
-          img { width: 34mm; height: auto; display: block; margin: 0 auto; }
-          .preco { font-size: 9px; line-height: 1.1; font-weight: bold; margin-top: 0.5mm; }
+          img { width: 34mm; height: 9mm; display: block; margin: 0 auto; }
+          .preco { font-size: 10px; line-height: 1; font-weight: bold; margin-top: 0.3mm; }
         </style>
       </head>
       <body>
@@ -141,6 +142,11 @@ export function printProductLabels(products: Product[]) {
   win.document.close();
 }
 
+/**
+ * Arredonda as cópias para completar a linha do rolo: a etiqueta vazia ao lado
+ * seria desperdiçada de qualquer forma, então sai uma cópia a mais do mesmo produto.
+ */
 export function printProductLabel(product: Product, copies = 1) {
-  printProductLabels(Array.from({ length: Math.max(1, copies) }, () => product));
+  const total = Math.ceil(Math.max(1, copies) / COLUMNS) * COLUMNS;
+  printProductLabels(Array.from({ length: total }, () => product));
 }
